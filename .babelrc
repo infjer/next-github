@@ -1,0 +1,15 @@
+/* https://github.com/zeit/next.js#customizing-babel-config */
+/* https://ant.design/docs/react/introduce-cn#按需加载 */
+
+{
+  "presets": ["next/babel"],
+  "plugins": [
+    [
+      "import",
+      {
+        "libraryName": "antd",
+        "style": "css"
+      }
+    ]
+  ]
+}

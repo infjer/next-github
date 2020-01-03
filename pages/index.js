@@ -1,88 +1,94 @@
-import React from 'react'
-import Head from 'next/head'
-import Nav from '../components/nav'
+import { useEffect, } from 'react'
+import { withRouter, } from 'next/router'
+import Link from 'next/link'
+import api from '../lib/api.js'
+import axios from 'axios'
+import { Button, Layout, Avatar, Icon, } from 'antd'
+import getConfig from 'next/config'
+import { connect, } from 'react-redux'
+import _ from 'lodash'
+import Repo from '../components/Repo.js'
+import LRU from 'lru-cache'
 
-const Home = () => (
-  <div>
-    <Head>
-      <title>Home</title>
-      <link rel="icon" href="/favicon.ico" />
-    </Head>
+const cache = new LRU({
+    maxAge: 10*60*1000,
+})
+const { Sider, Content, } = Layout
+const { publicRuntimeConfig, } = getConfig()
+const isServer = typeof window === 'undefined'
+const Index = ({ user, repos, starred, router, }) => {
+    useEffect(() => {
+        if (!isServer) {
+            cache.set('repos', repos)
+            cache.set('starred', repos)
+        }
+    }, [ repos, starred, ])
+    console.log(repos, starred)
+    if (!user.id) {
+        return (
+            <div>
+                <Button type='primary' href={ publicRuntimeConfig.OAUTH_URL + `&redirect_uri=http://localhost:3000/auth?redirect=${router.asPath}` }>前去登录</Button>
+            </div>
+        )
+    }
+    return (
+        <Layout style={{ paddingTop: '20px', }}>
+            <Sider width={ 300 } style={{ background: 'rgba(0,0,0,0)', }}>
+                <div style={{ display: 'flex', flexDirection: 'column', }}>
+                    <Avatar shape='square' size={ 250 } src={ user.avatar_url } />
+                    <span>{ user.login }</span>
+                    <span>{ user.name }</span>
+                    <span>{ user.bio }</span>
+                    <span>
+                        <Icon type='mail'/>
+                        <a href={ `mailto:${user.email}` }>{ user.email }</a>
+                    </span>
+                </div>
+            </Sider>
+            <Content>
+                <Repo repos={ repos } />
+                <Repo repos={ starred } />
+            </Content>
+        </Layout>
+    )
+}
 
-    <Nav />
+Index.getInitialProps = async ({ ctx, store, }) => {
+    let { user, } = store.getState()
+    if (!user.id) {
+        return { isLogin: false, }
+    }
+    if (!isServer) {
+        let repos = cache.get('repos')
+        let starred = cache.get('starred')
+        if (repos && starred) {
+            return {
+                repos,
+                starred,
+            }
+        }
+    }
+    const { data: repos, } = await api.request(
+        {
+            url: '/user/repos',
+        },
+        ctx.req,
+        ctx.res,
+    )
+    const { data: starred, } = await api.request(
+        {
+            url: '/user/starred',
+        },
+        ctx.req,
+        ctx.res,
+    )
+    return {
+        isLogin: true,
+        repos,
+        starred,
+    }
+}
 
-    <div className="hero">
-      <h1 className="title">Welcome to Next.js!</h1>
-      <p className="description">
-        To get started, edit <code>pages/index.js</code> and save to reload.
-      </p>
-
-      <div className="row">
-        <a href="https://nextjs.org/docs" className="card">
-          <h3>Documentation &rarr;</h3>
-          <p>Learn more about Next.js in the documentation.</p>
-        </a>
-        <a href="https://nextjs.org/learn" className="card">
-          <h3>Next.js Learn &rarr;</h3>
-          <p>Learn about Next.js by following an interactive tutorial!</p>
-        </a>
-        <a
-          href="https://github.com/zeit/next.js/tree/master/examples"
-          className="card"
-        >
-          <h3>Examples &rarr;</h3>
-          <p>Find other example boilerplates on the Next.js GitHub.</p>
-        </a>
-      </div>
-    </div>
-
-    <style jsx>{`
-      .hero {
-        width: 100%;
-        color: #333;
-      }
-      .title {
-        margin: 0;
-        width: 100%;
-        padding-top: 80px;
-        line-height: 1.15;
-        font-size: 48px;
-      }
-      .title,
-      .description {
-        text-align: center;
-      }
-      .row {
-        max-width: 880px;
-        margin: 80px auto 40px;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-      }
-      .card {
-        padding: 18px 18px 24px;
-        width: 220px;
-        text-align: left;
-        text-decoration: none;
-        color: #434343;
-        border: 1px solid #9b9b9b;
-      }
-      .card:hover {
-        border-color: #067df7;
-      }
-      .card h3 {
-        margin: 0;
-        color: #067df7;
-        font-size: 18px;
-      }
-      .card p {
-        margin: 0;
-        padding: 12px 0 0;
-        font-size: 13px;
-        color: #333;
-      }
-    `}</style>
-  </div>
-)
-
-export default Home
+export default withRouter(connect(state => ({
+    user: state.user,
+}))(Index))

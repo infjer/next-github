@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node server.js",
+    "dev": "node --inspect server.js",
     "build": "next build",
     "start": "next start"
   },
@@ -14,6 +14,7 @@
     "babel-plugin-import": "^1.13.0",
     "dayjs": "^1.8.18",
     "ioredis": "^4.14.1",
+    "js-base64": "^2.5.1",
     "koa": "^2.11.0",
     "koa-body": "^4.1.1",
     "koa-router": "^7.4.0",

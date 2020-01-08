@@ -9,7 +9,7 @@ module.exports = server => {
             const header = {
                 Authorization: `${token_type} ${access_token}`,
             }
-            const result = requestGithub(method, ctx.url.replace('/github/', '/'), ctx.request.body || {}, header)
+            const result = await requestGithub(method, ctx.url.replace('/github/', '/'), ctx.request.body || {}, header)
             ctx.body = result.data
             ctx.status = result.status
             // ctx.set('Content-Type', 'application/json')

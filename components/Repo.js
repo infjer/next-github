@@ -1,11 +1,14 @@
 import { Button, } from 'antd'
+import Link from 'next/link'
 
 const Repo = ({ repos, }) => {
     return (
         <>
             {
                 repos.map(i => (
-                    <Button href={ i.html_url } key={ i.id } target='_blank'>{ i.name }</Button>
+                    <Link href={ `/detail?u=${i.owner.login}&r=${i.name}` } key={ i.id } as={ `/detail/${i.owner.login}/${i.name}` }>
+                        <a>{ i.name }</a>
+                    </Link>
                 ))
             }
         </>

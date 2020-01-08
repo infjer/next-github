@@ -23,7 +23,6 @@ const Index = ({ user, repos, starred, router, }) => {
             cache.set('starred', repos)
         }
     }, [ repos, starred, ])
-    console.log(repos, starred)
     if (!user.id) {
         return (
             <div>
@@ -31,32 +30,37 @@ const Index = ({ user, repos, starred, router, }) => {
             </div>
         )
     }
-    return (
-        <Layout style={{ paddingTop: '20px', }}>
-            <Sider width={ 300 } style={{ background: 'rgba(0,0,0,0)', }}>
-                <div style={{ display: 'flex', flexDirection: 'column', }}>
-                    <Avatar shape='square' size={ 250 } src={ user.avatar_url } />
-                    <span>{ user.login }</span>
-                    <span>{ user.name }</span>
-                    <span>{ user.bio }</span>
-                    <span>
-                        <Icon type='mail'/>
-                        <a href={ `mailto:${user.email}` }>{ user.email }</a>
-                    </span>
-                </div>
-            </Sider>
-            <Content>
-                <Repo repos={ repos } />
-                <Repo repos={ starred } />
-            </Content>
-        </Layout>
-    )
+    return <div>empty notification</div>
+    // return (
+    //     <Layout style={{ paddingTop: '20px', }}>
+    //         <Sider width={ 300 } style={{ background: 'rgba(0,0,0,0)', }}>
+    //             <div style={{ display: 'flex', flexDirection: 'column', }}>
+    //                 <Avatar shape='square' size={ 250 } src={ user.avatar_url } />
+    //                 <span>{ user.login }</span>
+    //                 <span>{ user.name }</span>
+    //                 <span>{ user.bio }</span>
+    //                 <span>
+    //                     <Icon type='mail'/>
+    //                     <a href={ `mailto:${user.email}` }>{ user.email }</a>
+    //                 </span>
+    //             </div>
+    //         </Sider>
+    //         <Content>
+    //             <Repo repos={ repos } />
+    //             <Repo repos={ starred } />
+    //         </Content>
+    //     </Layout>
+    // )
 }
 
 Index.getInitialProps = async ({ ctx, store, }) => {
     let { user, } = store.getState()
     if (!user.id) {
-        return { isLogin: false, }
+        return {
+            isLogin: false,
+            repos: [],
+            starred: [],
+        }
     }
     if (!isServer) {
         let repos = cache.get('repos')
@@ -68,24 +72,24 @@ Index.getInitialProps = async ({ ctx, store, }) => {
             }
         }
     }
-    const { data: repos, } = await api.request(
-        {
-            url: '/user/repos',
-        },
-        ctx.req,
-        ctx.res,
-    )
-    const { data: starred, } = await api.request(
-        {
-            url: '/user/starred',
-        },
-        ctx.req,
-        ctx.res,
-    )
+    // const { data: repos, } = await api.request(
+    //     {
+    //         url: '/user/repos',
+    //     },
+    //     ctx.req,
+    //     ctx.res,
+    // )
+    // const { data: starred, } = await api.request(
+    //     {
+    //         url: '/user/starred',
+    //     },
+    //     ctx.req,
+    //     ctx.res,
+    // )
     return {
         isLogin: true,
-        repos,
-        starred,
+        repos: [],
+        starred: [],
     }
 }
 

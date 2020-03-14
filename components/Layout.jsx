@@ -1,5 +1,6 @@
 import { useState, useCallback, } from 'react'
-import { Layout, Button, Icon, Input, Avatar, Row, Col, Tooltip, Dropdown, Menu, } from 'antd'
+import { Layout, Button, Input, Avatar, Row, Col, Tooltip, Dropdown, Menu, } from 'antd'
+import { GithubOutlined, UserOutlined, } from '@ant-design/icons'
 import { connect, } from 'react-redux'
 import getConfig from 'next/config'
 import Container from './Container.js'
@@ -39,11 +40,9 @@ const layout = ({ children, user = {}, logout, router, }) => {
             <Header>
                 <Container renderer={ <Row align='middle' justify='center'/> }>
                     <Col span={ 2 }>
-                        {/* <Link href='/'>
-                            <a> */}
-                                <Icon type='github' style={{ fontSize: '40px', color: 'white', marginTop: '12px', }}/>
-                            {/* </a>
-                        </Link> */}
+                        <div style={{ display: 'flex', }}>
+                            <GithubOutlined style={{ fontSize: '40px', color: '#fff', lineHeight: '40px', }}/>
+                        </div>
                     </Col>
                     <Col span={ 8 }>
                         <Input.Search placeholder='search' value={ search } onChange={ handleSearchChange } onSearch={ handleSearch }/>
@@ -52,16 +51,12 @@ const layout = ({ children, user = {}, logout, router, }) => {
                         {
                             user.id ? (
                                 <Dropdown overlay={ Logout }>
-                                    {/* <Link href='/'>
-                                        <a> */}
-                                            <Avatar size={ 40 } src={ user.avatar_url }/>
-                                        {/* </a>
-                                    </Link> */}
+                                    <Avatar size={ 40 } src={ user.avatar_url }/>
                                 </Dropdown>
                             ) : (
                                 <Tooltip title='立即登录'>
                                     <a href={ publicRuntimeConfig.OAUTH_URL + `&redirect_uri=http://localhost:3000/auth?redirect=${router.asPath}` }>
-                                        <Avatar size={ 40 } icon='user'/>
+                                        <Avatar size={ 40 } icon={ <UserOutlined /> }/>
                                     </a>
                                 </Tooltip>
                             )

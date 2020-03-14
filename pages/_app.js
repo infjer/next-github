@@ -5,7 +5,8 @@ import axios from 'axios'
 import withRedux from '../lib/with-redux.js'
 import Layout from '../components/Layout.jsx'
 import Loading from '../components/Loading.jsx'
-import 'antd/dist/antd.css'
+import 'antd/dist/antd.dark.css'
+// import 'antd/dist/antd.css'
 
 class MyApp extends App {
     state = {

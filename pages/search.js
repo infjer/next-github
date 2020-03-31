@@ -1,9 +1,11 @@
+import { isValidElement, useEffect, } from 'react'
 import { withRouter, } from 'next/router'
 import api from '../lib/api.js'
-import { Row, Col, List, } from 'antd'
+import { Row, Col, List, Pagination, } from 'antd'
 import Link from 'next/link'
 import Router from 'next/router'
 import Repo from '../components/Repo.js'
+import { cacheArray, } from '../lib/repoCache.js'
 
 const LANGUAGES = [ 'JavaScript', 'TypeScript', 'Java', 'Python', 'C', 'Ruby', ]
 const SORT_TYPES = [
@@ -23,10 +25,16 @@ const SORT_TYPES = [
 ]
 
 const selectedStyle = {
-    borderLeft: '1px solid #e36209',
+    color: '#e36209'
 }
 
-const FilterLink = ({ name, query, lang, sort, order, }) => {
+const noop = () => {}
+
+const isServer = typeof window === 'undefined'
+
+const per_page = 20
+
+const FilterLink = ({ name, query, lang, sort, order, page, }) => {
     let qs = `?query=${query}`
     if (lang) {
         qs += `&lang=${lang}`
@@ -34,9 +42,10 @@ const FilterLink = ({ name, query, lang, sort, order, }) => {
     if (sort) {
         qs += `&sort=${sort}&order=${order || 'desc'}`
     }
-    // if (page) {
-    //     qs += `&page=${page}`
-    // }
+    if (page) {
+        qs += `&page=${page}`
+    }
+    qs += `&per_page=${per_page}`
     const doSearch = config => {
         Router.push({
             pathname: '/search',
@@ -49,15 +58,25 @@ const FilterLink = ({ name, query, lang, sort, order, }) => {
         })
     }
 
-    return <Link href={ `/search${qs}` }><a>{ name }</a></Link>
+    return <Link href={ `/search${qs}` }>
+        {
+            isValidElement(name) ? name : <a>{ name }</a>
+        }
+    </Link>
 }
 
 const Search = ({ router, repos, }) => {
     const { ...querys } = router.query
-    const { lang, sort, order, } = router.query
+    const { lang, sort, order, page, } = router.query
+
+    useEffect(() => {
+        if (!isServer) {
+            cacheArray(repos.items)
+        }
+    })
+
     return (
         <div>
-            <span>search: {router.query.q}</span>
             <Row gutter={ 20 }>
                 <Col span={ 6 }>
                     <List
@@ -103,8 +122,21 @@ const Search = ({ router, repos, }) => {
                 <Col span={ 18 }>
                     <h3>{ repos.total_count }个仓库</h3>
                     {
-                        repos.items.map(repo => <Repo repo={repo} key={ repo.id }/>)
+                        repos.items?.map(repo => <Repo repo={repo} key={ repo.id }/>)
                     }
+                    <div>
+                        <Pagination
+                            pageSize={ per_page }
+                            current={ Number(page) || 1 }
+                            total={ repos.total_count > 1000 ? 1000 : repos.total_count }
+                            onChange={ noop }
+                            itemRender={ (page, type, ol) => {
+                                const p = type === 'page' ? page : type === 'prev' ? page - 1 : page + 1
+                                const name = type === 'page' ? page : ol
+                                return <FilterLink { ...querys } page={ p } name={ name } />
+                            } }
+                            />
+                    </div>
                 </Col>
             </Row>
         </div>
@@ -113,7 +145,6 @@ const Search = ({ router, repos, }) => {
 
 Search.getInitialProps = async ({ ctx, }) => {
     const { query, sort, lang, order, page, } = ctx.query
-    console.log(ctx.query)
     if (!query) {
         return {
             repos: {
@@ -131,10 +162,17 @@ Search.getInitialProps = async ({ ctx, }) => {
     if (page) {
         qs += `&page=${page}`
     }
+    qs += `&per_page=${per_page}`
     const res = await api.request({
         url: `/search/repositories${qs}`,
     }, ctx.req, ctx.res)
-    console.log(res)
+    if (!res) {
+        return {
+            repos: {
+                total_count: 0,
+            },
+        }
+    }
     return {
       repos: res.data,
     }

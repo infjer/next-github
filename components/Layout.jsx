@@ -12,15 +12,15 @@ const { Header, Content, } = Layout
 const { publicRuntimeConfig, } = getConfig()
 
 const layout = ({ children, user = {}, logout, router, }) => {
-    const q = router.query?.q ?? ''
-    let [ search, setSearch, ] = useState(q)
+    const query = router.query?.query ?? ''
+    let [ search, setSearch, ] = useState(query)
 
     let handleSearchChange = useCallback(e => {
         setSearch(e.target.value)
     }, [ setSearch, ])
 
     let handleSearch = useCallback(() => {
-        router.push(`/search?q=${search}`)
+        router.push(`/search?query=${search}`)
     }, [ search, ])
 
     let handleLogout = useCallback(() => {
@@ -65,7 +65,7 @@ const layout = ({ children, user = {}, logout, router, }) => {
                 </Container>
             </Header>
             <Content>
-                <Container renderer={ <div style={{ padding: 0, }} /> }>{ children }</Container>
+                <Container renderer={ <div style={{ padding: '20px 0', }} /> }>{ children }</Container>
             </Content>
             <style jsx global>{`
                 #__next {

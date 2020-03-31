@@ -7,6 +7,9 @@ const koaBody = require('koa-body')
 const RedisSessionStore = require('./server/session.js')
 const auth = require('./server/auth.js')
 const api = require('./server/api.js')
+const atob = require('atob')
+
+global.atob = atob
 
 const dev = process.env.NODE_ENV !== 'production'
 const redis = new Redis()

@@ -11,7 +11,8 @@ module.exports = server => {
             }
             const result = requestGithub(method, ctx.url.replace('/github/', '/'), ctx.request.body || {}, header)
             ctx.body = result.data
-            ctx.status = result.status
+            console.log('server/api.js', result.status, typeof result.status)
+            ctx.status = Number(result.status)
             // ctx.set('Content-Type', 'application/json')
         } else {
             await next()

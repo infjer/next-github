@@ -10,6 +10,7 @@ import { connect, } from 'react-redux'
 import _ from 'lodash'
 import Repo from '../components/Repo.js'
 import LRU from 'lru-cache'
+import { cacheArray, } from '../lib/repoCache.js'
 
 const cache = new LRU({
     maxAge: 10*60*1000,
@@ -22,11 +23,17 @@ const Index = ({ user, repos, starred, router, }) => {
 
     useEffect(() => {
         if (!isServer) {
+            cacheArray(repos)
+            cacheArray(starred)
+        }
+    })
+
+    useEffect(() => {
+        if (!isServer) {
             repos && cache.set('repos', repos)
             starred && cache.set('starred', starred)
         }
     }, [ repos, starred, ])
-    console.log(repos, starred)
 
     const handleTabChange = activeKey => {
         Router.push(`/?key=${activeKey}`)
@@ -40,7 +47,7 @@ const Index = ({ user, repos, starred, router, }) => {
         )
     }
     return (
-        <Layout style={{ paddingTop: '20px', }}>
+        <Layout>
             <Sider width={ 300 } style={{ background: 'rgba(0,0,0,0)', }}>
                 <div className='user-info'>
                     <Avatar shape='square' size={ 220 } src={ user.avatar_url } />
@@ -101,20 +108,32 @@ Index.getInitialProps = async ({ ctx, store, }) => {
             }
         }
     }
-    const { data: repos, } = await api.request(
-        {
-            url: '/user/repos',
-        },
-        ctx.req,
-        ctx.res,
-    )
-    const { data: starred, } = await api.request(
-        {
-            url: '/user/starred',
-        },
-        ctx.req,
-        ctx.res,
-    )
+    let repos = []
+    let starred = []
+    try {
+        const res = await api.request(
+            {
+                url: '/user/repos',
+            },
+            ctx.req,
+            ctx.res,
+        )
+        repos = res.data
+    } catch (e) {
+
+    }
+    try {
+        const res = await api.request(
+            {
+                url: '/user/starred',
+            },
+            ctx.req,
+            ctx.res,
+        )
+        starred = res.data
+    } catch (e) {
+
+    }
     return {
         isLogin: true,
         repos,
